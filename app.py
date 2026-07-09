@@ -112,7 +112,12 @@ def download_prices(tickers, period="2y"):
 @st.cache_data(ttl=6 * 3600, show_spinner=False)
 def download_index(ticker, period="2y"):
     data = yf.download(ticker, period=period, auto_adjust=True, progress=False)
-    return data["Close"]
+    close = data["Close"]
+    # 新版 yfinance 就算只抓一檔股票，也可能回傳「表格」而非「單一數列」，
+    # 這裡強制轉成單一數列，避免後面 f"{last_val:,.2f}" 這種格式化語法出錯
+    if isinstance(close, pd.DataFrame):
+        close = close.iloc[:, 0]
+    return close
 
 
 # ---------- 核心計算：離252日高點回落幾% ----------
